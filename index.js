@@ -20,6 +20,7 @@ const secInMS = 1000;
 const intervalInMS = process.env.scrapingInterval * secInMS;
 
 setInterval(skimFrontPage, intervalInMS);
+//skimFrontPage();
 
 function skimFrontPage() {
     const req = https.request(options, res => {
@@ -73,25 +74,32 @@ function extractData(dom, time) {
         }
         posts.ranks.push(thing.querySelector(".rank").textContent);
     });
+
     subs.map((sub) => {
         if (sub.querySelector(".hnuser") !== null) {
             posts.authors.push(sub.querySelector(".hnuser").textContent);
         } else {
             posts.authors.push("ycombinator");
         }
-        posts.dateCreated.push(sub.querySelector(".age").title);
-        let comment = "0 comments";
+        let dateCreated = new Date(sub.querySelector(".age").title);
+        posts.dateCreated.push(dateCreated.toUTCString());
+        let comment = "0";
         if (Array.from(sub.querySelectorAll("a")).length > 3) {
             comment = Array.from(sub.querySelectorAll("a"))[3].textContent;
             if (comment == "discuss") {
-                comment = "0 comments";
+                comment = "0";
+            } else {
+                if (comment.length > 1) {
+                    comment = comment.substring(0, comment.indexOf('c'));
+                }
             }
         }
         posts.comments.push(comment);
         if (sub.querySelector(".score") !== null) {
-            posts.points.push(sub.querySelector(".score").textContent);
+            let points = sub.querySelector(".score").textContent;
+            posts.points.push(points.substring(0, points.indexOf('p')));
         } else {
-            posts.points.push("0 points");
+            posts.points.push("0");
         }
     });
 
