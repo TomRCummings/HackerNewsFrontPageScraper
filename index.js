@@ -18,6 +18,7 @@ const options = {
 
 const secInMS = 1000;
 const intervalInMS = process.env.scrapingInterval * secInMS;
+const searchable = process.env.searchable;
 
 setInterval(skimFrontPage, intervalInMS);
 //skimFrontPage();
@@ -113,6 +114,9 @@ function savePosts(posts, time) {
             db.all(`SELECT title FROM posts WHERE id = ?`, posts.ids[i], (err, rows) => {
                 if (rows.length == 0) {
                     db.run("INSERT INTO posts (id, title, url, author, siteStub, dateCreated) VALUES(?,?,?,?,?,?)", [posts.ids[i],posts.titles[i],posts.urls[i],posts.authors[i],posts.sitestubs[i], posts.dateCreated[i]]);
+                    if (searchable) {
+                        db.run("INSERT INTO posts_searchable (id, title) VALUES(?,?)", [posts.ids[i], posts.titles[i]]);
+                    }
                 }
             });
         }
