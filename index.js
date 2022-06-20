@@ -110,18 +110,12 @@ function savePosts(posts, time) {
     db.run("BEGIN TRANSACTION", () => {
         for (let i = 0; i < 30; i++) {
             db.run("INSERT INTO slices (sliceid, slicetime, postid, comments, points, rank) VALUES(?,?,?,?,?,?)", [uuidv4(), time, posts.ids[i], posts.comments[i], posts.points[i], posts.ranks[i]]);
+            db.all(`SELECT title FROM posts WHERE id = ?`, posts.ids[i], (err, rows) => {
+                if (rows.length == 0) {
+                    db.run("INSERT INTO posts (id, title, url, author, siteStub, dateCreated) VALUES(?,?,?,?,?,?)", [posts.ids[i],posts.titles[i],posts.urls[i],posts.authors[i],posts.sitestubs[i], posts.dateCreated[i]]);
+                }
+            });
         }
-        db.run("COMMIT", () => {
-            for (let i = 0; i < 30; i++) {
-                db.all(`SELECT title FROM posts WHERE id = ?`, posts.ids[i], (err, rows) => {
-                    if (rows.length == 0) {
-                        db.run("INSERT INTO posts (id, title, url, author, siteStub, dateCreated) VALUES(?,?,?,?,?,?)", [posts.ids[i],posts.titles[i],posts.urls[i],posts.authors[i],posts.sitestubs[i], posts.dateCreated[i]]);
-                    }
-                })
-            }
-        });
-
-
+        db.run("COMMIT");
     });
-
 }
